@@ -1,5 +1,7 @@
 # HW 7: logistic regression
 
+[![Build Status](https://github.com/myers2004/HW7-Regression/actions/workflows/test.yml/badge.svg?event=push)](https://github.com/myers2004/HW7-Regression/actions/workflows/test.yml)
+
 In this assignment, you'll implement a classifier using logistic regression, optimized with gradient descent.
 
 ## Overview
