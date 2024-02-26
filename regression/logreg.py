@@ -10,6 +10,9 @@ class BaseRegressor():
         # Weights are randomly initialized
         self.W = np.random.randn(num_feats + 1).flatten()
 
+        #Used for tests
+        self.prev_W = np.random.randn(num_feats + 1).flatten()
+
         # Store hyperparameters
         self.lr = learning_rate
         self.tol = tol
@@ -66,13 +69,14 @@ class BaseRegressor():
                 self.loss_hist_train.append(train_loss)
 
                 # Update weights
-                prev_W = self.W
+                self.prev_W = self.W
                 grad = self.calculate_gradient(y_train, X_train)
-                new_W = prev_W - self.lr * grad 
+                new_W = self.prev_W - self.lr * grad 
                 self.W = new_W
+                
 
                 # Save parameter update size
-                update_sizes.append(np.abs(new_W - prev_W))
+                update_sizes.append(np.abs(new_W - self.prev_W))
 
                 # Compute validation loss
                 val_loss = self.loss_function(y_val, self.make_prediction(X_val))
@@ -129,7 +133,14 @@ class LogisticRegressor(BaseRegressor):
         Returns: 
             The predicted labels (y_pred) for given X.
         """
-        pass
+
+
+        z = np.matmul(X,self.W)        #Multiply the features by their weights for each observation
+        y_pred = 1 / (1 + np.exp(-z))    #Input the features * weights into the sigmpid function for logistic regression
+        
+
+        return y_pred
+
     
     def loss_function(self, y_true, y_pred) -> float:
         """
@@ -143,7 +154,14 @@ class LogisticRegressor(BaseRegressor):
         Returns: 
             The mean loss (a single number).
         """
-        pass
+        num_pred = len(y_pred)
+
+        #Calculate loss using the binary cross entropy loss equation in two steps
+        loss = -(np.dot(y_true,np.log(y_pred)) + np.dot(1 - y_true, np.log(1 - y_pred)))
+        loss = loss / num_pred
+        
+        return loss
+
         
     def calculate_gradient(self, y_true, X) -> np.ndarray:
         """
@@ -157,4 +175,15 @@ class LogisticRegressor(BaseRegressor):
         Returns: 
             Vector of gradients.
         """
-        pass
+        num_obs = len(y_true)
+
+        #Make a prediction for use in calculating the gradient of the loss function
+        y_pred = self.make_prediction(X)
+
+        #Calculate the gradiaent of the loss fucntion with respect to the weights
+        # For each feature, do (y_pred - y_true) * x_j (the gradient with respect to w_j)
+        # where x_j is one feature and add them together to get the summed gradient across observations
+        # with respect to w_j, then divide by number of observations observations to get the average gradient
+        grad = np.matmul(X.T, (y_pred - y_true)) / num_obs
+
+        return grad
